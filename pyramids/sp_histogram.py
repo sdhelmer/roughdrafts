@@ -22,7 +22,6 @@ class SP_histogram:
         self.splits = splits
         self.sizes = sizes
         self.bsize = bsize
-         
         if self.bsize != None:
             self.hist_size = bsize*sum([prod(self.splits**level) for level in range(self.scale_levels+1)])
         if bsize:
@@ -68,12 +67,14 @@ class SP_histogram:
             result[i]+=1
         return result
     
-    def sp_distance(self, M, reweight = True):
+    def sp_distance(self, M, reweight = True, ignore_flat = False):
 #        pdb.set_trace()
         weight = ones(self.hist_size)
         if reweight:
             for ip in self.pyramid_index:
                 weight[ip:] *= self.splits[0] #maybe invalid assumption
+        if ignore_flat:
+            weight[:self.pyramid_index[0]] = 0
         result = []
 #        pdb.set_trace()
         for row in M:
@@ -81,13 +82,22 @@ class SP_histogram:
             result.append(inter)
 #        pdb.set_trace()
         return -vstack(result)
-            
     
+    def L2_dist(self, M, normalize = False):
+        if normalize:
+            M = M/sqrt(sum(M**2,1).reshape(-1,1))
+        return metrics.squareform(metrics.pdist(M))
+    
+    def L1_dist(self, M, normalize = False):
+        if normalize:
+            M = M/sum(M,1).reshape(-1,1)
+        return metrics.squareform(metrics.pdist(M,'cityblock'))
+
 def edist(M):
     M2 = sum(M**2,1)
     return -2*dot(M,M.T) + M2 + M2.reshape(-1,1)   
         
-def search( data, sph ):
+def search( data, sph, dist_metric = 'spd', weight_scheme = 'reweight'):
     filenames = [filename for filename in data.iterkeys()]
     histograms = vstack([data[filename]['histogram'] for filename in filenames ])
 #    pdb.set_trace()
@@ -95,7 +105,17 @@ def search( data, sph ):
 #    result = edist(histograms)
 
 #    result = metrics.squareform(metrics.pdist(histograms))
-    result = sph.sp_distance(histograms)    
+    if dist_metric == 'spd':
+        if weight_scheme == 'reweight':
+            result = sph.sp_distance(histograms)
+        elif weight_scheme == 'noweight':
+            result = sph.sp_distance(histograms, False)
+        elif weight_scheme == 'ignore_flat':
+            result = sph.sp_distance(histograms, False, True)
+    elif dist_metric == 'L2':
+        result = sph.L2_dist(histograms, True)
+    elif dist_metric == 'L1':
+        result = sph.L1_dist(histograms, True)
     return result, filenames
  
 def image_output(image_dir, output_dir, filenames, M, num_per_image = 7):
@@ -118,15 +138,16 @@ def image_output(image_dir, output_dir, filenames, M, num_per_image = 7):
             images[closest[j]].save(opj(output_dir,ope(filenames[i])[0] +
                                         "_" + str(j)+".jpg"))
         
-def create_histograms(data_filename, nwords, splits = None):
+def create_histograms(data_filename, nwords, splits = None, scale_levels = 1):
             
-    splits = split if splits != None else array((2,2))
+    splits = splits if splits != None else array((2,2))
     fp = open(data_filename, 'r')
     data = pickle.load(fp)
-    hist_maker = SP_histogram( splits, None, 0, nwords)
+    hist_maker = SP_histogram( splits, None, scale_levels, nwords)
     fp.close()
     for filename, im_data in data.iteritems():
         im_data['histogram'] = hist_maker.create_histogram(im_data['locs'], im_data['membership'], amax(im_data['locs'],0)+1 )
+
         print filename
     return data, hist_maker
 

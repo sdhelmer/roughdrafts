@@ -321,19 +321,20 @@ def merge_csv_files(filenames, output_filename):
     output_csvfile(output_filename, all_csvs)
     return None
 
-def load_config(filename):
+def load_config(filename, opt_dict = None):
     """Returns a dictionary from a config file."""
     config = ConfigParser.ConfigParser()
     file = config.read(filename)
     tmp_dict = config.defaults()
     prog = re.compile('\[[^\[\]]+\]')
-    final_dict = {}
+    final_dict = {} if opt_dict == None else opt_dict
     done = False
     while not done:
         done = True
         for key, value in tmp_dict.iteritems():
             if value.find("[")<0:
-                final_dict[key] = value
+                if not final_dict.has_key(key):
+                    final_dict[key] = value
                 continue
             myiter = prog.finditer(value)
             rs = []
@@ -400,7 +401,7 @@ def load_command_line(argv, flags = "", keys = [],flag_keys = [],
         opt_dict[k.lstrip("-")] = v
     if check_config and opt_dict.has_key('config') and config_first:
         tmp = {}
-        tmp.update(load_config(opt_dict['config']))
+        tmp.update(load_config(opt_dict['config'], opt_dict.copy()))
         tmp.update(opt_dict)
         return tmp
     elif check_config and opt_dict.has_key('config'):
