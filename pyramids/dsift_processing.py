@@ -77,7 +77,7 @@ class Processor:
             data[filename] = {'keypoints': tmpdata[:,self.feat_dim:],
                         'locs': tmpdata[:,self.feat_dim:self.feat_dim+2],
                         'scale': tmpdata[:,self.feat_dim+2],
-                        'membership': assignment[prev_index:tmpdata.shape[0]]}
+                        'membership': assignment[prev_index:prev_index+tmpdata.shape[0]]}
             prev_index += tmpdata.shape[0]
 #        pdb.set_trace()
         fp = open(self.keypoint_file,'w')

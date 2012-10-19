@@ -119,26 +119,26 @@ def search( data, sph, dist_metric = 'spd', weight_scheme = 'reweight'):
         result = sph.L1_dist(histograms, True)
     return result, filenames
  
-def image_output(image_dir, output_dir, filenames, M, num_per_image = 7):
-    from PIL import Image
-    images = []
-#    [Image.open(opj(image_dir, filename)) for filename in filenames ]
-
-    for filename in filenames:
-        image = Image.open(opj(image_dir, filename)).convert('RGB')
-        image.thumbnail((80,80))
-        images.append(image) 
-#    pdb.set_trace()
-    for i in np.random.permutation(len(images))[:40]:
-        closest = np.argsort(M[i])
-#        close_images = [images[j] for j in closest[range(num_per_image)]]
-        for j in range(num_per_image):
-#            print opj(output_dir,ope(filenames[i])[0] +
-#                                        "_" + str(j)+".jpg")
-#            print filenames[closest[j]]
-            images[closest[j]].save(opj(output_dir,ope(filenames[i])[0] +
-                                        "_" + str(j)+".jpg"))
-        
+#def image_output(image_dir, output_dir, filenames, M, num_per_image = 7):
+#    from PIL import Image
+#    images = []
+##    [Image.open(opj(image_dir, filename)) for filename in filenames ]
+#
+#    for filename in filenames:
+#        image = Image.open(opj(image_dir, filename)).convert('RGB')
+#        image.thumbnail((80,80))
+#        images.append(image) 
+##    pdb.set_trace()
+#    for i in np.random.permutation(len(images))[:40]:
+#        closest = np.argsort(M[i])
+##        close_images = [images[j] for j in closest[range(num_per_image)]]
+#        for j in range(num_per_image):
+##            print opj(output_dir,ope(filenames[i])[0] +
+##                                        "_" + str(j)+".jpg")
+##            print filenames[closest[j]]
+#            images[closest[j]].save(opj(output_dir,ope(filenames[i])[0] +
+#                                        "_" + str(j)+".jpg"))
+#        
 def create_histograms(data_filename, nwords, splits = None, scale_levels = 1):
             
     splits = splits if splits != None else array((2,2))
