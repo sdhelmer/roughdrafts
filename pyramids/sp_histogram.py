@@ -54,6 +54,7 @@ class SP_histogram:
             try:
                 index = base + sum(int32(locs/grid) * mult,1) * bsize + bins
             except:
+                print "ERROR"
                 pdb.set_trace()
             
             indices.append(index)
